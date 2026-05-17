@@ -15,7 +15,7 @@ class VerifyReport:
     def add(self, name: str, ok: bool, detail: str = "") -> None:
         self.checks.append({"name": name, "ok": ok, "detail": detail})
 
-    def finalize(self) -> "VerifyReport":
+    def finalize(self) -> VerifyReport:
         if not self.checks:
             self.pass_rate = 0.0
         else:

@@ -5,7 +5,6 @@ OPSIN goes IUPAC→SMILES; we then compare canonical SMILES on both ends.
 """
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -14,7 +13,6 @@ from rdkit import Chem
 
 from ..cache import cached
 from ..config import settings
-
 
 # ---------- Data ----------
 
