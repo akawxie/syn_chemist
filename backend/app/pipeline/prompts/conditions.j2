@@ -1,0 +1,30 @@
+Module B — Reaction Condition Recommendation.
+
+Reactant SMILES: {{ reactant }}
+{% if reactant_iupac %}Reactant IUPAC: {{ reactant_iupac }}{% endif %}
+Product SMILES: {{ product }}
+{% if product_iupac %}Product IUPAC: {{ product_iupac }}{% endif %}
+{% if reagent %}User-specified reagent/catalyst/solvent: {{ reagent }}{% if reagent_iupac %} ({{ reagent_iupac }}){% endif %}
+  → Treat this as a constraint the user has already committed to; build candidates around it.{% endif %}
+{% if reaction_class_hint %}Hint (reaction class): {{ reaction_class_hint }}{% endif %}
+
+Task: Propose 3–5 plausible reaction-condition sets ranked best-to-worst. Cite mainstream
+literature heuristics, not exotic conditions.
+
+Return JSON:
+{
+  "reaction_class_guess": "<e.g. Suzuki coupling, SN2, Friedel-Crafts acylation>",
+  "candidates": [
+    {
+      "solvent": "<e.g. THF, DMF, toluene>",
+      "catalyst": "<e.g. Pd(PPh3)4, none>",
+      "base_or_additive": "<e.g. K2CO3, none>",
+      "temperature": "<e.g. 80 C, reflux>",
+      "time": "<e.g. 12 h>",
+      "equivalents": {"reactant": 1.0, "reagent": 1.2},
+      "rationale": "<one sentence>",
+      "self_confidence": <float 0..1>
+    }
+  ],
+  "overall_self_confidence": <float 0..1>
+}

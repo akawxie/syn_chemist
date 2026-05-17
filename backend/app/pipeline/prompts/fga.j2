@@ -1,0 +1,37 @@
+Module A — Functional Group Alert.
+
+Molecule:
+- Canonical SMILES: {{ smiles }}
+{% if iupac %}- IUPAC: {{ iupac }}{% endif %}
+
+RDKit inventory (use as a guide, NOT as a ceiling):
+- Hazard-tagged SMARTS hits: {{ detected_groups | tojson }}
+- Full fragment counts (rdkit.Chem.Fragments fr_*): {{ fragments | tojson }}
+
+Task:
+Produce a COMPREHENSIVE list of functional groups present in this molecule, then
+judge each one's practical risk under common bench conditions (thermal stability,
+shock sensitivity, genotoxicity, biological reactivity, storage hazards).
+
+Important:
+- Do NOT limit yourself to the inventory above. If you can identify a group from
+  the SMILES/IUPAC that the inventory missed (e.g. specific heterocycles, ether
+  subtypes, stereochemistry-sensitive motifs), include it.
+- For ANY group you list that is not obviously in the inventory above, you MUST
+  provide a SMARTS pattern (`smarts` field) so RDKit can verify your claim. If
+  the group is clearly in the inventory, `smarts` may be omitted.
+- Mark severity honestly — most common groups are "low".
+
+Return JSON ONLY:
+{
+  "alerts": [
+    {
+      "group": "<name, lowercase, underscore-separated>",
+      "severity": "low" | "medium" | "high",
+      "risk": "<one-sentence rationale>",
+      "smarts": "<SMARTS pattern; required when group is NOT in the inventory>",
+      "self_confidence": <float 0..1>
+    }
+  ],
+  "overall_self_confidence": <float 0..1>
+}

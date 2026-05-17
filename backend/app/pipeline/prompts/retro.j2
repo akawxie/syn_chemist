@@ -1,0 +1,30 @@
+Module C — Retrosynthesis Route Recommendation.
+
+Target molecule:
+- Canonical SMILES: {{ smiles }}
+{% if iupac %}- IUPAC: {{ iupac }}{% endif %}
+- Functional groups present: {{ detected_groups | tojson }}
+
+Task: Propose 2–4 plausible retrosynthetic routes (3–6 steps each) using textbook
+disconnections. For every step give the immediate precursor as a SMILES string you can
+defend (no invented connectivity).
+
+Return JSON:
+{
+  "routes": [
+    {
+      "name": "<short label>",
+      "steps": [
+        {
+          "step": 1,
+          "transform": "<reaction class, e.g. Amide coupling>",
+          "intermediate_smiles": "<SMILES of the precursor side>",
+          "rationale": "<one sentence>",
+          "self_confidence": <float 0..1>
+        }
+      ],
+      "self_confidence": <float 0..1>
+    }
+  ],
+  "overall_self_confidence": <float 0..1>
+}
