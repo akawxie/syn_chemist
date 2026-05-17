@@ -4,7 +4,7 @@ Reactant SMILES: {{ reactant }}
 {% if reactant_iupac %}Reactant IUPAC: {{ reactant_iupac }}{% endif %}
 Product SMILES: {{ product }}
 {% if product_iupac %}Product IUPAC: {{ product_iupac }}{% endif %}
-{% if reagent %}User-specified reagent/catalyst/solvent: {{ reagent }}{% if reagent_iupac %} ({{ reagent_iupac }}){% endif %}
+{% if reagent is defined and reagent %}User-specified reagent/catalyst/solvent: {{ reagent }}{% if reagent_iupac is defined and reagent_iupac %} ({{ reagent_iupac }}){% endif %}
   → Treat this as a constraint the user has already committed to; build candidates around it.{% endif %}
 {% if reaction_class_hint %}Hint (reaction class): {{ reaction_class_hint }}{% endif %}
 

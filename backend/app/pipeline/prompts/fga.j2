@@ -6,7 +6,7 @@ Molecule:
 
 RDKit inventory (use as a guide, NOT as a ceiling):
 - Hazard-tagged SMARTS hits: {{ detected_groups | tojson }}
-- Full fragment counts (rdkit.Chem.Fragments fr_*): {{ fragments | tojson }}
+- Full fragment counts (rdkit.Chem.Fragments fr_*): {{ (fragments if fragments is defined else []) | tojson }}
 
 Task:
 Produce a COMPREHENSIVE list of functional groups present in this molecule, then

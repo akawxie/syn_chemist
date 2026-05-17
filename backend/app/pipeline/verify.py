@@ -60,7 +60,8 @@ def reaction_atom_balance(reactant_smiles: list[str], product_smiles: list[str])
 # Curated subset of safety/reactivity-relevant groups. Extend over time.
 FUNCTIONAL_GROUPS: list[tuple[str, str, str]] = [
     # (name, SMARTS, severity: 'low'|'medium'|'high')
-    ("nitro", "[NX3](=O)=O", "high"),
+    # nitro: matches both neutral [NX3](=O)=O and charged [N+](=O)[O-] forms (RDKit keeps charges explicit)
+    ("nitro", "[$([NX3](=O)=O),$([NX3+](=O)[O-])]", "high"),
     ("azide", "[N-]=[N+]=N", "high"),
     ("diazo", "[N+]#N", "high"),
     ("nitrile", "C#N", "low"),
@@ -83,7 +84,8 @@ FUNCTIONAL_GROUPS: list[tuple[str, str, str]] = [
     ("isocyanate", "N=C=O", "high"),
     ("boronic_acid", "B(O)O", "low"),
     ("aryl_halide", "[c][F,Cl,Br,I]", "low"),
-    ("nitroso", "N=O", "medium"),
+    # nitroso N=O, but excluding nitro context (nitro N has degree 3, so [NX2] excludes it)
+    ("nitroso", "[NX2]=O", "medium"),
     ("hydrazine", "N-N", "medium"),
     ("thiol", "[SX2H]", "medium"),
 ]
