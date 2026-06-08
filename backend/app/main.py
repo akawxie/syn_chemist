@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api import conditions as conditions_api
 from .api import fga as fga_api
 from .api import molecule as molecule_api
+from .api import molecule_image as molecule_image_api
 from .api import retro as retro_api
 from .config import settings
 from .db import get_engine
@@ -43,6 +44,7 @@ async def health() -> dict:
 
 
 app.include_router(molecule_api.router)
+app.include_router(molecule_image_api.router)
 app.include_router(fga_api.router)
 app.include_router(conditions_api.router)
 app.include_router(retro_api.router)

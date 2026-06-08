@@ -1,7 +1,9 @@
 """Module A — Functional Group Alert."""
 from __future__ import annotations
 
+from ..i18n import Lang, lang_name
 from ..llm import JudgeProvider, get_judge_provider
+from ..llm.base import try_parse_or_reprompt
 from ..pipeline import prompts
 from ..pipeline.confidence import composite_confidence
 from ..pipeline.naming import NormalizedMolecule, RoundTripValidator
@@ -13,6 +15,7 @@ async def run_fga(
     *,
     judge: JudgeProvider | None = None,
     validator: RoundTripValidator | None = None,
+    lang: Lang = "en",
 ) -> dict:
     judge = judge or get_judge_provider()
     validator = validator or RoundTripValidator()
@@ -30,9 +33,9 @@ async def run_fga(
         detected_groups=detected,
         fragments=fragments,
     )
-    system = prompts.render("system.j2")
+    system = prompts.render("system.j2", output_language_name=lang_name(lang))
 
-    judge_result = await judge.judge(system, user)
+    judge_result = await try_parse_or_reprompt(judge, system, user)
     alerts = judge_result.parsed.get("alerts", []) or []
 
     verify_report = verify_fga(normalized.canonical_smiles, alerts)
@@ -51,7 +54,13 @@ async def run_fga(
         "narrative": judge_result.raw_text,
         "verification": {"pass_rate": verify_report.pass_rate, "checks": verify_report.checks},
         "confidence": confidence.to_dict(),
-        "judge": {"provider": judge_result.provider, "model": judge_result.model},
+        "judge": {
+            "provider": judge_result.provider,
+            "model": judge_result.model,
+            "retry_count": judge_result.retry_count,
+            "json_retry": judge_result.json_retry,
+        },
+        "output_language": lang,
     }
 
 

@@ -26,6 +26,8 @@ export interface VerificationReport {
 export interface JudgeMeta {
   provider: string;
   model: string;
+  retry_count?: number;
+  json_retry?: boolean;
 }
 
 export interface DetectedGroup {
@@ -60,6 +62,7 @@ export interface FGAResponse {
   verification: VerificationReport;
   confidence: ConfidenceBreakdown;
   judge: JudgeMeta;
+  output_language?: string;
   error?: string;
   notes?: string[];
 }
@@ -86,6 +89,7 @@ export interface ConditionsResponse {
   verification: VerificationReport;
   confidence: ConfidenceBreakdown;
   judge: JudgeMeta;
+  output_language?: string;
   error?: string;
 }
 
@@ -121,5 +125,6 @@ export interface RetroResponse {
   verification: VerificationReport;
   confidence: ConfidenceBreakdown;
   judge: JudgeMeta;
+  output_language?: string;
   error?: string;
 }

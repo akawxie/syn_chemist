@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from ..cache import cached
 from ..config import settings
+from ._retry import with_retry
 from .base import JudgeProvider, JudgeResult
 
 
@@ -26,10 +27,14 @@ class GeminiJudge(JudgeProvider):
         if not self._configured or self._model is None:
             raise RuntimeError("GOOGLE_API_KEY is not set or google-generativeai not installed.")
         prompt = f"{system}\n\n---\n\n{user}"
-        resp = await self._model.generate_content_async(
-            prompt,
-            generation_config={"temperature": 0.0, "response_mime_type": "application/json"},
-        )
+
+        async def _call():
+            return await self._model.generate_content_async(
+                prompt,
+                generation_config={"temperature": 0.0, "response_mime_type": "application/json"},
+            )
+
+        resp, retries = await with_retry(_call)
         text = getattr(resp, "text", "") or ""
         parsed = self.extract_json(text)
         return JudgeResult(
@@ -38,4 +43,5 @@ class GeminiJudge(JudgeProvider):
             self_confidence=self.confidence_from(parsed),
             provider=self.name,
             model=settings.gemini_model,
+            retry_count=retries,
         )

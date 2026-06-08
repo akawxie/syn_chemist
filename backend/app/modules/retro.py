@@ -1,7 +1,9 @@
 """Module C — Synthesis Route Recommendation (retrosynthesis)."""
 from __future__ import annotations
 
+from ..i18n import Lang, lang_name
 from ..llm import JudgeProvider, get_judge_provider
+from ..llm.base import try_parse_or_reprompt
 from ..pipeline import prompts
 from ..pipeline.confidence import composite_confidence
 from ..pipeline.naming import RoundTripValidator
@@ -13,6 +15,7 @@ async def run_retro(
     *,
     judge: JudgeProvider | None = None,
     validator: RoundTripValidator | None = None,
+    lang: Lang = "en",
 ) -> dict:
     judge = judge or get_judge_provider()
     validator = validator or RoundTripValidator()
@@ -33,9 +36,9 @@ async def run_retro(
         iupac=n.iupac,
         detected_groups=detected,
     )
-    system = prompts.render("system.j2")
+    system = prompts.render("system.j2", output_language_name=lang_name(lang))
 
-    judge_result = await judge.judge(system, user)
+    judge_result = await try_parse_or_reprompt(judge, system, user)
     routes = judge_result.parsed.get("routes", []) or []
 
     verify_report = verify_retro(n.canonical_smiles, routes)
@@ -52,5 +55,11 @@ async def run_retro(
         "narrative": judge_result.raw_text,
         "verification": {"pass_rate": verify_report.pass_rate, "checks": verify_report.checks},
         "confidence": confidence.to_dict(),
-        "judge": {"provider": judge_result.provider, "model": judge_result.model},
+        "judge": {
+            "provider": judge_result.provider,
+            "model": judge_result.model,
+            "retry_count": judge_result.retry_count,
+            "json_retry": judge_result.json_retry,
+        },
+        "output_language": lang,
     }

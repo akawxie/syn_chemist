@@ -1,6 +1,8 @@
 """POST /api/conditions — Module B endpoint."""
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -14,6 +16,7 @@ class ConditionsRequest(BaseModel):
     product: str
     reagent: str | None = None
     reaction_class_hint: str | None = None
+    lang: Literal["en", "zh"] = "en"
 
 
 @router.post("")
@@ -23,4 +26,5 @@ async def conditions(req: ConditionsRequest) -> dict:
         req.product,
         reagent=req.reagent,
         reaction_class_hint=req.reaction_class_hint,
+        lang=req.lang,
     )

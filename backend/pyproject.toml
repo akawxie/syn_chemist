@@ -17,6 +17,8 @@ dependencies = [
     "anthropic>=0.40",
     "google-generativeai>=0.7",
     "tenacity>=9.0",
+    "Pillow>=10.0",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]

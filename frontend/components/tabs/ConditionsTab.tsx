@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import type { ConditionsResponse } from "@/lib/types";
+import { useLang } from "@/components/LanguageContext";
+import { t } from "@/lib/i18n";
 import type { NormBundle } from "../MoleculeInput";
 import { NarrativeBlock } from "../NarrativeBlock";
 import { ResultBlock } from "../ResultBlock";
@@ -12,6 +14,7 @@ export function ConditionsTab({ bundle }: { bundle: NormBundle }) {
   const [data, setData] = useState<ConditionsResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { lang } = useLang();
 
   const inputErr = validate(bundle);
 
@@ -26,6 +29,7 @@ export function ConditionsTab({ bundle }: { bundle: NormBundle }) {
         {
           reagent: bundle.reagent?.canonical_smiles ?? null,
           reaction_class_hint: hint.trim() || null,
+          lang,
         },
       );
       setData(r);
@@ -84,7 +88,7 @@ export function ConditionsTab({ bundle }: { bundle: NormBundle }) {
         data-testid="run-conditions"
         className="rounded bg-accent px-4 py-2 text-sm font-semibold text-bg disabled:opacity-50"
       >
-        {busy ? "Running…" : "Recommend conditions"}
+        {busy ? t(lang, "btn.analyzing") : t(lang, "btn.analyze_conditions")}
       </button>
 
       {err && (
@@ -95,12 +99,14 @@ export function ConditionsTab({ bundle }: { bundle: NormBundle }) {
 
       {data && !data.error && (
         <ResultBlock
-          title={`Conditions${data.reaction_class_guess ? ` · ${data.reaction_class_guess}` : ""}`}
+          title={`${t(lang, "result.title.conditions")}${data.reaction_class_guess ? ` · ${data.reaction_class_guess}` : ""}`}
           confidence={data.confidence}
           verification={data.verification}
+          judge={data.judge}
+          outputLanguage={data.output_language}
         >
           {data.candidates.length === 0 ? (
-            <div className="text-xs text-gray-500">No candidates returned.</div>
+            <div className="text-xs text-gray-500">{t(lang, "result.no_results")}</div>
           ) : (
             <div className="overflow-x-auto" data-testid="cond-table">
               <table className="w-full text-xs">

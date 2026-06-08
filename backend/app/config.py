@@ -34,6 +34,7 @@ class Settings(BaseSettings):
 
     google_api_key: str | None = None
     gemini_model: str = "gemini-2.0-flash"
+    gemini_vision_model: str = "gemini-2.5-flash-lite"  # P2 image OCR; override via env
 
     # --- Naming providers ---
     # 'stout_local' requires the optional 'stout' extra. 'opsin_web' uses the public CAM service.

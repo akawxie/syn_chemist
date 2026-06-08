@@ -1,5 +1,8 @@
 "use client";
 
+import { useLang } from "./LanguageContext";
+import { t } from "@/lib/i18n";
+
 // Always-available raw LLM output. JSON output sometimes squeezes most useful
 // content into one prose field; the structured table can look empty even when
 // the model said useful things. So we surface the raw response too.
@@ -13,7 +16,9 @@ interface Props {
   title?: string;
 }
 
-export function NarrativeBlock({ narrative, thin = false, title = "Raw LLM response" }: Props) {
+export function NarrativeBlock({ narrative, thin = false, title }: Props) {
+  const { lang } = useLang();
+  const displayTitle = title ?? t(lang, "narrative.toggle");
   if (!narrative || !narrative.trim()) return null;
 
   // Try to pretty-print JSON; if not JSON, keep as-is.
@@ -28,10 +33,10 @@ export function NarrativeBlock({ narrative, thin = false, title = "Raw LLM respo
   return (
     <details open={thin} className="mt-3 rounded border border-border bg-bg p-2 text-xs">
       <summary className="cursor-pointer text-gray-400">
-        {title}
+        {displayTitle}
         {thin && (
           <span className="ml-2 text-amber-300">
-            · structured fields look sparse; showing raw output
+            · {t(lang, "narrative.thin_hint")}
           </span>
         )}
       </summary>

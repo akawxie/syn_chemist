@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import type { RetroResponse } from "@/lib/types";
+import { useLang } from "@/components/LanguageContext";
+import { t } from "@/lib/i18n";
 import type { NormBundle } from "../MoleculeInput";
 import { MoleculeRender } from "../MoleculeRender";
 import { NarrativeBlock } from "../NarrativeBlock";
@@ -12,14 +14,14 @@ export function RetroTab({ bundle }: { bundle: NormBundle }) {
   const [data, setData] = useState<RetroResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { lang } = useLang();
 
-  // Validation: this tab needs a single molecule target. Reaction → use product side.
   const target =
     bundle.parsed?.kind === "molecule"
       ? bundle.single
       : bundle.parsed?.kind === "reaction"
-      ? bundle.product
-      : null;
+        ? bundle.product
+        : null;
 
   const inputErr = validate(bundle, target);
 
@@ -28,7 +30,7 @@ export function RetroTab({ bundle }: { bundle: NormBundle }) {
     setBusy(true);
     setErr(null);
     try {
-      const r = await api.retro(target.canonical_smiles);
+      const r = await api.retro(target.canonical_smiles, lang);
       setData(r);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -57,7 +59,7 @@ export function RetroTab({ bundle }: { bundle: NormBundle }) {
         data-testid="run-retro"
         className="rounded bg-accent px-4 py-2 text-sm font-semibold text-bg disabled:opacity-50"
       >
-        {busy ? "Running…" : "Propose retrosynthesis"}
+        {busy ? t(lang, "btn.analyzing") : t(lang, "btn.analyze_retro")}
       </button>
 
       {err && (
@@ -68,12 +70,14 @@ export function RetroTab({ bundle }: { bundle: NormBundle }) {
 
       {data && !data.error && (
         <ResultBlock
-          title="Retrosynthesis routes"
+          title={t(lang, "result.title.retro")}
           confidence={data.confidence}
           verification={data.verification}
+          judge={data.judge}
+          outputLanguage={data.output_language}
         >
           {data.routes.length === 0 ? (
-            <div className="text-xs text-gray-500">No routes returned.</div>
+            <div className="text-xs text-gray-500">{t(lang, "result.no_results")}</div>
           ) : (
             <ol className="space-y-4" data-testid="retro-routes">
               {data.routes.map((r, i) => (

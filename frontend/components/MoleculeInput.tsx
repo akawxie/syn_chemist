@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { parseInput, type ParsedInput } from "@/lib/parseInput";
 import type { NormalizedMolecule } from "@/lib/types";
+import { useLang } from "./LanguageContext";
+import { t } from "@/lib/i18n";
+import { ImageInput } from "./ImageInput";
 import { MoleculeRender } from "./MoleculeRender";
 
 interface Props {
@@ -11,8 +14,6 @@ interface Props {
   onChange: (v: string) => void;
   onParsed?: (parsed: ParsedInput | null) => void;
   onNormalized?: (bundle: NormBundle) => void;
-  label?: string;
-  placeholder?: string;
   testId?: string;
 }
 
@@ -39,11 +40,12 @@ export function MoleculeInput({
   onChange,
   onParsed,
   onNormalized,
-  label = "Molecule or reaction (SMILES, InChI, MOL block, or A.B>R>C)",
-  placeholder = "CCO   |   CC(=O)O.CCO>>CCOC(=O)C   |   paste a MOL block",
   testId,
 }: Props) {
   const [bundle, setBundle] = useState<NormBundle>(EMPTY);
+  const [imageMode, setImageMode] = useState(false);
+  const [imageWarning, setImageWarning] = useState<string | null>(null);
+  const { lang } = useLang();
 
   useEffect(() => {
     const parsed = parseInput(value);
@@ -97,19 +99,40 @@ export function MoleculeInput({
   return (
     <div className="flex flex-col gap-3">
       <div>
-        <label className="mb-1 block text-xs uppercase tracking-wide text-gray-400">
-          {label}
-        </label>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="block text-xs uppercase tracking-wide text-gray-400">
+            {t(lang, "input.label")}
+          </label>
+          <button
+            type="button"
+            onClick={() => setImageMode((v) => !v)}
+            className="text-xs text-gray-400 hover:text-accent"
+            title="Upload an image of a chemical structure"
+          >
+            {imageMode ? t(lang, "input.close_image") : t(lang, "input.add_image")}
+          </button>
+        </div>
         <textarea
           data-testid={testId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={t(lang, "input.placeholder")}
           rows={value.includes("\n") ? Math.min(12, value.split("\n").length) : 1}
           className="w-full resize-y rounded border border-border bg-panel px-3 py-2 font-mono text-sm text-gray-100 outline-none focus:border-accent"
         />
-        <div className="mt-2 text-xs text-gray-400">{pending && "checking…"}</div>
+        <div className="mt-2 text-xs text-gray-400">{pending && t(lang, "input.checking")}</div>
+        {imageWarning && (
+          <div className="mt-2 text-xs text-amber-300">⚠ {imageWarning}</div>
+        )}
       </div>
+      {imageMode && (
+        <ImageInput
+          onSmilesDetected={(smi, warning) => {
+            onChange(smi);
+            setImageWarning(warning ?? null);
+          }}
+        />
+      )}
 
       {!isReaction && bundle.single && (
         <div className="flex flex-col gap-4 md:flex-row">

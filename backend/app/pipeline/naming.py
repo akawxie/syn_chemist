@@ -13,6 +13,7 @@ from rdkit import Chem
 
 from ..cache import cached
 from ..config import settings
+from ..llm._retry import with_retry
 
 # ---------- Data ----------
 
@@ -102,22 +103,39 @@ class StubIUPACProvider:
 
 
 class PubChemIUPACProvider:
-    """PubChem REST: SMILES → IUPAC name. Free, no key, works for compounds PubChem indexes."""
+    """PubChem REST: SMILES → IUPAC name. Free, no key, works for compounds PubChem indexes.
+
+    Retries network / 5xx / 429 up to 3 times with exponential backoff.
+    Returns None on 4xx (compound not indexed) or after retries exhausted.
+    """
 
     @cached("pubchem:iupac")
     async def to_iupac(self, smiles: str) -> str | None:
-        try:
-            from urllib.parse import quote
-            url = (
-                f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
-                f"{quote(smiles, safe='')}/property/IUPACName/TXT"
-            )
+        from urllib.parse import quote
+        url = (
+            f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+            f"{quote(smiles, safe='')}/property/IUPACName/TXT"
+        )
+
+        async def _fetch() -> str | None:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 r = await client.get(url)
+                if r.status_code == 404:
+                    # Compound not indexed — not retryable
+                    return None
+                if r.status_code == 429 or r.status_code >= 500:
+                    # Raise so with_retry kicks in
+                    raise httpx.HTTPStatusError(
+                        f"PubChem {r.status_code}", request=r.request, response=r
+                    )
                 if r.status_code != 200:
                     return None
                 name = r.text.strip().splitlines()[0].strip() if r.text else ""
                 return name or None
+
+        try:
+            result, _retries = await with_retry(_fetch)
+            return result
         except Exception:
             return None
 
@@ -179,17 +197,28 @@ class Py2OpsinProvider:
 
 
 class OpsinWebProvider:
-    """Public OPSIN web service at opsin.ch.cam.ac.uk."""
+    """Public OPSIN web service. Retries on network / 5xx / 429."""
 
     @cached("opsin:web")
     async def to_smiles(self, iupac: str) -> str | None:
         url = f"{settings.opsin_web_url}/{iupac}.smi"
-        try:
+
+        async def _fetch() -> str | None:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 r = await client.get(url)
+                if r.status_code == 404:
+                    return None
+                if r.status_code == 429 or r.status_code >= 500:
+                    raise httpx.HTTPStatusError(
+                        f"OPSIN {r.status_code}", request=r.request, response=r
+                    )
                 if r.status_code != 200:
                     return None
                 return r.text.strip() or None
+
+        try:
+            result, _retries = await with_retry(_fetch)
+            return result
         except Exception:
             return None
 

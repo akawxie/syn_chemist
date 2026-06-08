@@ -8,3 +8,9 @@ Rules of engagement:
 3. Prefer well-known, textbook-grade reasoning over speculation. If uncertain, lower confidence.
 4. Never invent a SMILES string you cannot derive from the input molecule's structure.
 5. If you cannot answer responsibly, return an empty list with a brief reason and low confidence.
+{% if output_language_name is defined and output_language_name %}
+6. Respond in {{ output_language_name }}. For chemistry identifiers (SMILES, InChI, IUPAC names,
+   molecular formulas, SMARTS, element symbols, named reactions like "Suzuki coupling"), KEEP
+   THEM IN ENGLISH / standard notation — do not translate them. Only translate natural-language
+   fields (rationale, risk, disconnection, summary).
+{% endif %}
