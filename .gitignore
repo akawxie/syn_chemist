@@ -55,3 +55,6 @@ Thumbs.db
 # --- Build artifacts ---
 dist/
 build/
+
+# --- Internal technical docs ---
+TECH.md
