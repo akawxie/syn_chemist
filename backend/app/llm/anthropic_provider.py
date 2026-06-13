@@ -13,7 +13,10 @@ class AnthropicJudge(JudgeProvider):
     name = "anthropic"
 
     def __init__(self) -> None:
-        self._client = AsyncAnthropic(api_key=settings.anthropic_api_key) if settings.anthropic_api_key else None
+        self._client = (
+            AsyncAnthropic(api_key=settings.anthropic_api_key, timeout=120.0, max_retries=0)
+            if settings.anthropic_api_key else None
+        )
 
     @cached("judge:anthropic")
     async def judge(self, system: str, user: str) -> JudgeResult:

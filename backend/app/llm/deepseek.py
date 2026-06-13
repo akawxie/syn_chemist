@@ -5,12 +5,17 @@ https://api.deepseek.com/v1. Default model: 'deepseek-chat'.
 """
 from __future__ import annotations
 
+import httpx
 from openai import AsyncOpenAI
 
 from ..cache import cached
 from ..config import settings
 from ._retry import with_retry
 from .base import JudgeProvider, JudgeResult
+
+# LLM calls for complex molecules can take 60–90s; cap at 120s so the UI
+# gets a timely error instead of hanging for the SDK's default 600s.
+_TIMEOUT = httpx.Timeout(connect=5.0, read=120.0, write=30.0, pool=10.0)
 
 
 class DeepSeekJudge(JudgeProvider):
@@ -24,6 +29,8 @@ class DeepSeekJudge(JudgeProvider):
             self._client = AsyncOpenAI(
                 api_key=settings.deepseek_api_key,
                 base_url=settings.deepseek_base_url,
+                timeout=_TIMEOUT,
+                max_retries=0,  # we use with_retry for consistent retry logic
             )
 
     @cached("judge:deepseek")

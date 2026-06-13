@@ -1,6 +1,7 @@
 """OpenAI judge (GPT)."""
 from __future__ import annotations
 
+import httpx
 from openai import AsyncOpenAI
 
 from ..cache import cached
@@ -8,12 +9,17 @@ from ..config import settings
 from ._retry import with_retry
 from .base import JudgeProvider, JudgeResult
 
+_TIMEOUT = httpx.Timeout(connect=5.0, read=120.0, write=30.0, pool=10.0)
+
 
 class OpenAIJudge(JudgeProvider):
     name = "openai"
 
     def __init__(self) -> None:
-        self._client = AsyncOpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+        self._client = (
+            AsyncOpenAI(api_key=settings.openai_api_key, timeout=_TIMEOUT, max_retries=0)
+            if settings.openai_api_key else None
+        )
 
     @cached("judge:openai")
     async def judge(self, system: str, user: str) -> JudgeResult:
