@@ -179,7 +179,7 @@ export function ConditionsTab({ bundle }: { bundle: NormBundle }) {
           Direct Image Analysis <span className="normal-case text-gray-600">(Gemini · upload a reaction scheme image)</span>
         </div>
         <VisionPanel
-          label="Analyze Image"
+          label={t(lang, "btn.analyze_image")}
           busyLabel={t(lang, "btn.analyzing")}
           onAnalyze={async (file) => {
             setVisionData(null);

@@ -18,6 +18,7 @@ export const zh: Record<Key, string> = {
   "btn.analyze_fga": "分析官能团",
   "btn.analyze_conditions": "推荐反应条件",
   "btn.analyze_retro": "提出逆合成路线",
+  "btn.analyze_image": "图片分析",
 
   "confidence.high": "高置信度",
   "confidence.med": "中等置信度",

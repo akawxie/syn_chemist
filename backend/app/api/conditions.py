@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from ..llm.gemini_vision import GeminiVisionJudge
@@ -35,7 +35,7 @@ async def conditions(req: ConditionsRequest) -> dict:
 @router.post("/from_image")
 async def conditions_from_image(
     file: UploadFile = File(...),
-    lang: Literal["en", "zh"] = "en",
+    lang: Literal["en", "zh"] = Form("en"),
 ) -> dict:
     raw = await file.read()
     if not raw:

@@ -18,6 +18,7 @@ export const en = {
   "btn.analyze_fga": "Analyze functional groups",
   "btn.analyze_conditions": "Recommend conditions",
   "btn.analyze_retro": "Propose retrosynthesis",
+  "btn.analyze_image": "Analyze Image",
 
   "confidence.high": "High confidence",
   "confidence.med": "Medium confidence",

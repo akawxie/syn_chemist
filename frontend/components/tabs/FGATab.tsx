@@ -155,7 +155,7 @@ export function FGATab({ bundle }: { bundle: NormBundle }) {
           Direct Image Analysis <span className="normal-case text-gray-600">(Gemini · no SMILES required)</span>
         </div>
         <VisionPanel
-          label="Analyze Image"
+          label={t(lang, "btn.analyze_image")}
           busyLabel={t(lang, "btn.analyzing")}
           onAnalyze={async (file) => {
             setVisionData(null);
