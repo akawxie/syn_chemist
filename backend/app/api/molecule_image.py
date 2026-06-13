@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import io
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
 
 from ..llm.gemini_vision import (

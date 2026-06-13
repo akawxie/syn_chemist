@@ -18,21 +18,16 @@ T = TypeVar("T")
 
 _RETRYABLE_NAMES: frozenset[str] = frozenset(
     {
-        # OpenAI SDK
+        # OpenAI / Anthropic SDK
         "RateLimitError",
         "APIConnectionError",
         "APITimeoutError",
         "InternalServerError",
         "APIStatusError",
-        # Anthropic SDK
-        "APIConnectionError",
-        "RateLimitError",
-        "InternalServerError",
         # Google generativeai / google.api_core
         "ResourceExhausted",
         "DeadlineExceeded",
         "ServiceUnavailable",
-        "InternalServerError",
         "RetryError",
     }
 )
@@ -53,10 +48,8 @@ def is_retryable_exception(exc: BaseException) -> bool:
     if isinstance(code, int):
         if code == 429:
             return True
-        if 500 <= code < 600:
-            return True
         # 4xx (auth, bad request) — do NOT retry
-        return False
+        return 500 <= code < 600
     return exc.__class__.__name__ in _RETRYABLE_NAMES
 
 

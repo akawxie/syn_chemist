@@ -5,7 +5,6 @@ import pytest
 
 from app.llm.gemini_vision import (
     NotAMoleculeError,
-    OCRResult,
     parse_ocr_response,
 )
 

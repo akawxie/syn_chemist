@@ -11,8 +11,7 @@ import json
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
-from rdkit import Chem
-from rdkit import RDLogger
+from rdkit import Chem, RDLogger
 
 from ..config import settings
 from ..i18n import Lang, lang_name
@@ -50,10 +49,7 @@ def _clean_smiles_candidate(raw: str) -> str:
     if s.startswith("```"):
         # remove first line up to newline
         nl = s.find("\n")
-        if nl != -1:
-            s = s[nl + 1 :]
-        else:
-            s = s.lstrip("`")
+        s = s[nl + 1 :] if nl != -1 else s.lstrip("`")
         if s.endswith("```"):
             s = s[:-3]
     s = s.strip().strip('"').strip("'").strip()
@@ -106,6 +102,7 @@ class GeminiVisionOCR:
                 "GOOGLE_API_KEY is not set or google-genai not installed."
             )
         from google.genai import types  # type: ignore[import-not-found]
+
         from ._retry import with_retry
 
         async def _call():
@@ -192,6 +189,7 @@ class GeminiVisionJudge:
         if not self._configured or self._client is None:
             raise RuntimeError("GOOGLE_API_KEY is not set or google-genai not installed.")
         from google.genai import types  # type: ignore[import-not-found]
+
         from ._retry import with_retry
 
         async def _req():

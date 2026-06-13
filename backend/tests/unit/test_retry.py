@@ -7,7 +7,6 @@ import pytest
 from app.llm._retry import is_retryable_exception, with_retry
 from app.llm.base import JudgeResult, try_parse_or_reprompt
 
-
 # ---------- with_retry primitive ----------
 
 
