@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp"]);
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -44,6 +44,30 @@ export function VisionPanel({ label, busyLabel, onAnalyze, children }: Props) {
     [onAnalyze],
   );
 
+  // Keep a stable ref so the paste listener never needs to be re-registered
+  const handleRef = useRef(handle);
+  handleRef.current = handle;
+
+  // Global paste listener — active while this panel is mounted (one tab at a time)
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (ALLOWED.has(item.type)) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            void handleRef.current(file);
+            return;
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, []);
+
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
@@ -65,7 +89,7 @@ export function VisionPanel({ label, busyLabel, onAnalyze, children }: Props) {
             <img src={preview} alt="preview" className="h-full w-full object-contain" />
           ) : (
             <span className="text-center text-[10px] leading-tight text-gray-600">
-              drop image<br />or click
+              拖入 / 点击<br />或 Ctrl+V
             </span>
           )}
         </div>
@@ -89,7 +113,9 @@ export function VisionPanel({ label, busyLabel, onAnalyze, children }: Props) {
           >
             {busy ? busyLabel : label}
           </button>
-          <span className="text-[10px] text-gray-600">PNG / JPEG / WEBP · max 5 MB</span>
+          <span className="text-[10px] text-gray-600">
+            拖入 · 点击上传 · Ctrl+V 粘贴<br />PNG / JPEG / WEBP · 最大 5 MB
+          </span>
         </div>
       </div>
 
