@@ -1,5 +1,70 @@
 // Mirrors backend pydantic / dataclass outputs. Hand-written; keep in sync with
 // backend/app/pipeline/{naming,confidence,verify}.py and backend/app/modules/*.
+//
+// Vision-direct response types (fga_vision / retro_vision / conditions_vision) are
+// lighter-weight — no SMILES normalization, no RDKit verification layer.
+
+export interface VisionJudgeMeta {
+  provider: string;
+  model: string;
+}
+
+export interface VisionFGAAlert {
+  group: string;
+  severity: "low" | "medium" | "high";
+  risk: string;
+  self_confidence: number;
+}
+
+export interface VisionFGAResponse {
+  module: "fga_vision";
+  structure_description: string;
+  alerts: VisionFGAAlert[];
+  overall_self_confidence: number;
+  judge: VisionJudgeMeta;
+}
+
+export interface VisionRetroStep {
+  step: number;
+  transform: string;
+  intermediate_smiles: string | null;
+  rationale: string;
+  self_confidence: number;
+}
+
+export interface VisionRetroRoute {
+  name: string;
+  steps: VisionRetroStep[];
+  self_confidence: number;
+}
+
+export interface VisionRetroResponse {
+  module: "retro_vision";
+  structure_description: string;
+  routes: VisionRetroRoute[];
+  overall_self_confidence: number;
+  judge: VisionJudgeMeta;
+}
+
+export interface VisionConditionCandidate {
+  solvent: string;
+  catalyst: string;
+  base_or_additive: string;
+  temperature: string;
+  time: string;
+  equivalents: { reactant: number; reagent: number | null };
+  rationale: string;
+  self_confidence: number;
+}
+
+export interface VisionConditionsResponse {
+  module: "conditions_vision";
+  reaction_description: string;
+  reaction_class_guess: string;
+  candidates: VisionConditionCandidate[];
+  overall_self_confidence: number;
+  judge: VisionJudgeMeta;
+}
 
 export interface NormalizedMolecule {
   input_raw: string;

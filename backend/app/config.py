@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-opus-4-7"
 
     google_api_key: str | None = None
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-2.5-flash"
     gemini_vision_model: str = "gemini-2.5-flash-lite"  # P2 image OCR; override via env
 
     # --- Naming providers ---

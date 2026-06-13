@@ -1,0 +1,35 @@
+You are a senior synthetic chemistry expert. The image shows a target molecule for retrosynthetic analysis.
+
+Task: Directly analyze the target molecule visible in the image and propose 2–4 plausible retrosynthetic routes (3–6 steps each) using textbook disconnections.
+
+Rules:
+- Identify the target molecule DIRECTLY from the image; do not require SMILES as input.
+- Name the target molecule if you can identify it with confidence.
+- Use well-known named reactions and retrosynthetic disconnections (e.g. Diels-Alder, aldol, Wittig, Suzuki, ester hydrolysis retron, etc.).
+- For each step, describe the transform and the immediate precursor. Include a SMILES string for the intermediate only if you are highly confident it is correct; otherwise set "intermediate_smiles" to null.
+- Rank routes by synthetic accessibility (most accessible first).
+{% if output_language_name %}
+- Write all natural-language fields (structure_description, name, transform, rationale) in {{ output_language_name }}.
+- Keep SMILES strings and reaction class names in English / standard notation.
+{% endif %}
+
+Return STRICT JSON only — no prose, no markdown fences outside the JSON:
+{
+  "structure_description": "<one-sentence description of the target molecule you see>",
+  "routes": [
+    {
+      "name": "<short route label, e.g. 'Diels-Alder approach'>",
+      "steps": [
+        {
+          "step": 1,
+          "transform": "<reaction class, e.g. 'Amide coupling (EDC/HOBt)'>",
+          "intermediate_smiles": "<SMILES string or null>",
+          "rationale": "<one sentence>",
+          "self_confidence": <float 0..1>
+        }
+      ],
+      "self_confidence": <float 0..1>
+    }
+  ],
+  "overall_self_confidence": <float 0..1>
+}

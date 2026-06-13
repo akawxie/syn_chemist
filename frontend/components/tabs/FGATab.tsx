@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
-import type { FGAResponse } from "@/lib/types";
+import type { FGAResponse, VisionFGAResponse } from "@/lib/types";
 import { useLang } from "@/components/LanguageContext";
 import { t } from "@/lib/i18n";
 import type { NormBundle } from "../MoleculeInput";
 import { NarrativeBlock } from "../NarrativeBlock";
 import { ResultBlock } from "../ResultBlock";
+import { VisionPanel, SeverityBadge, ConfidenceChip } from "../VisionPanel";
 
 export function FGATab({ bundle }: { bundle: NormBundle }) {
   const [data, setData] = useState<FGAResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [visionData, setVisionData] = useState<VisionFGAResponse | null>(null);
   const { lang } = useLang();
 
   const target =
@@ -146,6 +148,47 @@ export function FGATab({ bundle }: { bundle: NormBundle }) {
           {data.error}
         </div>
       )}
+
+      {/* ── Vision direct analysis ── */}
+      <div className="mt-2 border-t border-border pt-4">
+        <div className="mb-2 text-xs uppercase tracking-wide text-gray-500">
+          Direct Image Analysis <span className="normal-case text-gray-600">(Gemini · no SMILES required)</span>
+        </div>
+        <VisionPanel
+          label="Analyze Image"
+          busyLabel={t(lang, "btn.analyzing")}
+          onAnalyze={async (file) => {
+            setVisionData(null);
+            setVisionData(await api.fgaFromImage(file, lang));
+          }}
+        >
+          {visionData && (
+            <div className="space-y-2">
+              <div className="text-xs text-gray-400 italic">{visionData.structure_description}</div>
+              {visionData.alerts.length === 0 ? (
+                <div className="text-xs text-gray-500">No alerts identified.</div>
+              ) : (
+                <ul className="space-y-1.5">
+                  {visionData.alerts.map((a, i) => (
+                    <li key={i} className="rounded border border-border bg-bg p-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{a.group}</span>
+                        <SeverityBadge severity={a.severity} />
+                        <ConfidenceChip value={a.self_confidence} />
+                      </div>
+                      <div className="mt-1 text-xs text-gray-400">{a.risk}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="text-right text-[10px] text-gray-600">
+                overall conf. {Math.round(visionData.overall_self_confidence * 100)}% ·{" "}
+                {visionData.judge.model}
+              </div>
+            </div>
+          )}
+        </VisionPanel>
+      </div>
     </div>
   );
 }

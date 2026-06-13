@@ -3,6 +3,9 @@ import type {
   FGAResponse,
   NormalizedMolecule,
   RetroResponse,
+  VisionFGAResponse,
+  VisionRetroResponse,
+  VisionConditionsResponse,
 } from "./types";
 import type { Lang } from "./i18n";
 
@@ -47,6 +50,48 @@ export const api = {
 
   retro: (target: string, lang: Lang = "en") =>
     post<RetroResponse>("/api/retro", { target, lang }),
+
+  fgaFromImage: async (file: File, lang: Lang = "en"): Promise<VisionFGAResponse> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("lang", lang);
+    const res = await fetch(`${BASE}/api/fga/from_image`, { method: "POST", body: fd });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      let message = text;
+      try { const p = JSON.parse(text) as { detail?: string }; if (p.detail) message = p.detail; } catch { /* */ }
+      throw new Error(`${res.status}: ${message || res.statusText}`);
+    }
+    return res.json() as Promise<VisionFGAResponse>;
+  },
+
+  retroFromImage: async (file: File, lang: Lang = "en"): Promise<VisionRetroResponse> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("lang", lang);
+    const res = await fetch(`${BASE}/api/retro/from_image`, { method: "POST", body: fd });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      let message = text;
+      try { const p = JSON.parse(text) as { detail?: string }; if (p.detail) message = p.detail; } catch { /* */ }
+      throw new Error(`${res.status}: ${message || res.statusText}`);
+    }
+    return res.json() as Promise<VisionRetroResponse>;
+  },
+
+  conditionsFromImage: async (file: File, lang: Lang = "en"): Promise<VisionConditionsResponse> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("lang", lang);
+    const res = await fetch(`${BASE}/api/conditions/from_image`, { method: "POST", body: fd });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      let message = text;
+      try { const p = JSON.parse(text) as { detail?: string }; if (p.detail) message = p.detail; } catch { /* */ }
+      throw new Error(`${res.status}: ${message || res.statusText}`);
+    }
+    return res.json() as Promise<VisionConditionsResponse>;
+  },
 
   moleculeFromImage: async (file: File): Promise<ImageOCRResponse> => {
     const fd = new FormData();

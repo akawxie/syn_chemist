@@ -1,0 +1,27 @@
+You are a senior synthetic chemistry expert. The image shows a chemical structure drawn in standard skeletal/structural notation.
+
+Task: Directly analyze the molecular structure visible in the image. Identify ALL functional groups present and assess their practical risks under common bench conditions (thermal stability, shock sensitivity, genotoxicity, biological reactivity, storage hazards).
+
+Rules:
+- Analyze the structure DIRECTLY from the image — do NOT attempt to convert to SMILES first.
+- Be comprehensive: list every recognizable functional group, even low-risk ones (alcohols, esters, etc.).
+- Most common groups are "low" severity; reserve "high" for genuinely dangerous motifs (peroxides, azides, polynitro compounds, diazo groups, etc.).
+- Provide a concise, practical risk rationale for each group.
+{% if output_language_name %}
+- Write all natural-language fields (structure_description, risk) in {{ output_language_name }}.
+- Keep chemistry identifiers (group names in the "group" field, any SMARTS) in English / standard notation.
+{% endif %}
+
+Return STRICT JSON only — no prose, no markdown fences outside the JSON:
+{
+  "structure_description": "<one-sentence description of the molecule you see>",
+  "alerts": [
+    {
+      "group": "<lowercase_underscore_name>",
+      "severity": "low" | "medium" | "high",
+      "risk": "<one-sentence practical rationale>",
+      "self_confidence": <float 0..1>
+    }
+  ],
+  "overall_self_confidence": <float 0..1>
+}

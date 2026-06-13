@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
-import type { RetroResponse } from "@/lib/types";
+import type { RetroResponse, VisionRetroResponse } from "@/lib/types";
 import { useLang } from "@/components/LanguageContext";
 import { t } from "@/lib/i18n";
 import type { NormBundle } from "../MoleculeInput";
 import { MoleculeRender } from "../MoleculeRender";
 import { NarrativeBlock } from "../NarrativeBlock";
 import { ResultBlock } from "../ResultBlock";
+import { VisionPanel, ConfidenceChip } from "../VisionPanel";
 
 export function RetroTab({ bundle }: { bundle: NormBundle }) {
   const [data, setData] = useState<RetroResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [visionData, setVisionData] = useState<VisionRetroResponse | null>(null);
   const { lang } = useLang();
 
   const target =
@@ -154,6 +156,67 @@ export function RetroTab({ bundle }: { bundle: NormBundle }) {
           {data.error}
         </div>
       )}
+
+      {/* ── Vision direct analysis ── */}
+      <div className="mt-2 border-t border-border pt-4">
+        <div className="mb-2 text-xs uppercase tracking-wide text-gray-500">
+          Direct Image Analysis <span className="normal-case text-gray-600">(Gemini · no SMILES required)</span>
+        </div>
+        <VisionPanel
+          label="Analyze Image"
+          busyLabel={t(lang, "btn.analyzing")}
+          onAnalyze={async (file) => {
+            setVisionData(null);
+            setVisionData(await api.retroFromImage(file, lang));
+          }}
+        >
+          {visionData && (
+            <div className="space-y-2">
+              <div className="text-xs text-gray-400 italic">{visionData.structure_description}</div>
+              {visionData.routes.length === 0 ? (
+                <div className="text-xs text-gray-500">No routes proposed.</div>
+              ) : (
+                <ol className="space-y-3">
+                  {visionData.routes.map((r, i) => (
+                    <li key={i} className="rounded border border-border bg-bg p-3">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-gray-500 text-xs">Route {i + 1}</span>
+                        <span className="text-sm font-semibold">{r.name}</span>
+                        <ConfidenceChip value={r.self_confidence} />
+                      </div>
+                      <ol className="mt-2 space-y-2 text-xs">
+                        {(r.steps ?? []).map((s, j) => (
+                          <li key={j} className="flex gap-2 rounded border border-border bg-panel p-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-500">Step {s.step}</span>
+                                <strong>{s.transform}</strong>
+                              </div>
+                              {s.intermediate_smiles && (
+                                <div className="mt-0.5 font-mono text-[11px] text-gray-300 break-all">
+                                  {s.intermediate_smiles}
+                                </div>
+                              )}
+                              <div className="mt-0.5 text-gray-400">{s.rationale}</div>
+                            </div>
+                            {s.intermediate_smiles && (
+                              <MoleculeRender smiles={s.intermediate_smiles} width={140} height={110} />
+                            )}
+                          </li>
+                        ))}
+                      </ol>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <div className="text-right text-[10px] text-gray-600">
+                overall conf. {Math.round(visionData.overall_self_confidence * 100)}% ·{" "}
+                {visionData.judge.model}
+              </div>
+            </div>
+          )}
+        </VisionPanel>
+      </div>
     </div>
   );
 }
