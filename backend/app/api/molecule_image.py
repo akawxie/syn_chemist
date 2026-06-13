@@ -119,5 +119,11 @@ async def from_image(file: UploadFile = File(...)) -> dict:
         raise HTTPException(status_code=422, detail="empty upload")
     validated_bytes, mime = _validate_image(raw)
     ocr = GeminiVisionOCR()
+    if not getattr(ocr, "is_configured", False):
+        raise HTTPException(
+            status_code=503,
+            detail="Image OCR unavailable — GOOGLE_API_KEY is not configured. "
+                   "Set it in backend/.env to enable image input.",
+        )
     validator = RoundTripValidator()
     return await _run_ocr_and_normalize(validated_bytes, mime, ocr, validator)

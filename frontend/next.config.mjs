@@ -10,6 +10,12 @@ const nextConfig = {
       },
     ];
   },
+  // LLM calls (retro, conditions) can take 30–90s; the default proxy timeout
+  // in Next.js is ~30s which causes ECONNRESET / socket hang up.
+  // Bump to 180s to accommodate slow reasoning models.
+  experimental: {
+    proxyTimeout: 180_000,
+  },
 };
 
 export default nextConfig;

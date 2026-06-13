@@ -31,6 +31,7 @@ class FakeOCR:
 
     def __init__(self, behavior: str = "ok") -> None:
         self.behavior = behavior
+        self.is_configured = True
 
     async def smiles_from_image(self, raw: bytes, mime: str) -> OCRResult:
         if self.behavior == "not_molecule":

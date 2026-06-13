@@ -82,31 +82,38 @@ class GeminiVisionOCR:
 
     def __init__(self) -> None:
         self._configured = False
-        self._model = None
+        self._client = None
+        self._model_name: str = ""
         if settings.google_api_key:
             try:
-                import google.generativeai as genai  # type: ignore[import-not-found]
+                from google import genai  # type: ignore[import-not-found]
 
-                genai.configure(api_key=settings.google_api_key)
-                self._model = genai.GenerativeModel(settings.gemini_vision_model)
+                self._client = genai.Client(api_key=settings.google_api_key)
+                self._model_name = settings.gemini_vision_model
                 self._configured = True
             except Exception:
                 self._configured = False
 
+    @property
+    def is_configured(self) -> bool:
+        return self._configured
+
     async def smiles_from_image(self, image_bytes: bytes, mime: str) -> OCRResult:
-        if not self._configured or self._model is None:
+        if not self._configured or self._client is None:
             raise RuntimeError(
-                "GOOGLE_API_KEY is not set or google-generativeai not installed."
+                "GOOGLE_API_KEY is not set or google-genai not installed."
             )
+        from google.genai import types  # type: ignore[import-not-found]
         from ._retry import with_retry
 
         async def _call():
-            return await self._model.generate_content_async(
-                [
-                    {"mime_type": mime, "data": image_bytes},
+            return await self._client.aio.models.generate_content(
+                model=self._model_name,
+                contents=[
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime),
                     _OCR_PROMPT,
                 ],
-                generation_config={"temperature": 0.0},
+                config=types.GenerateContentConfig(temperature=0.0),
             )
 
         resp, _retries = await with_retry(_call)
